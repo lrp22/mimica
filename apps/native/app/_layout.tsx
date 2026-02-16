@@ -6,26 +6,19 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { AppThemeProvider } from "@/contexts/app-theme-context";
 
-export const unstable_settings = {
-  initialRouteName: "(drawer)",
-};
-
-function StackLayout() {
-  return (
-    <Stack screenOptions={{}}>
-      <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
-      <Stack.Screen name="modal" options={{ title: "Modal", presentation: "modal" }} />
-    </Stack>
-  );
-}
-
 export default function Layout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <KeyboardProvider>
         <AppThemeProvider>
           <HeroUINativeProvider>
-            <StackLayout />
+            <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="setup" />
+                <Stack.Screen name="interstitial" />
+                <Stack.Screen name="game" />
+                <Stack.Screen name="scoring" />
+            </Stack>
           </HeroUINativeProvider>
         </AppThemeProvider>
       </KeyboardProvider>
