@@ -1,106 +1,147 @@
-import { create } from 'zustand';
-import allWords from '../data/words.json';
+import { create } from "zustand";
+import allWords from "../data/words.json";
 
-export type Word = { id: string; word: string; category: string; difficulty: number };
+export type Word = {
+  id: string;
+  word: string;
+  category: string;
+  difficulty: number;
+};
 
 interface GameState {
   // Settings
   teamA: string;
   teamB: string;
   maxScore: number;
-  roundTime: number; 
-  
+  roundTime: number;
+  categories: string[];
+
   // Game Status
   scores: { A: number; B: number };
-  currentTeam: 'A' | 'B';
+  currentTeam: "A" | "B";
   usedWordIds: string[];
   currentBatch: Word[];
-  
+
   // Actions
-  setSettings: (settings: { teamA: string; teamB: string; maxScore: number; roundTime: number }) => void;
+  setSettings: (settings: Partial<GameState>) => void;
+  toggleCategory: (cat: string) => void;
+  selectAllCategories: () => void;
   addScore: (points: number) => void;
   switchTeam: () => void;
   generateBatch: () => void;
   resetGame: () => void;
 }
 
+const ALL_CATEGORIES = ["A", "O", "P", "L", "D"];
+
 export const useGameStore = create<GameState>((set, get) => ({
-  teamA: "Time Vermelho",
-  teamB: "Time Azul",
+  teamA: "Red Team",
+  teamB: "Blue Team",
   maxScore: 30,
   roundTime: 60,
-  
+  categories: [...ALL_CATEGORIES],
+
   scores: { A: 0, B: 0 },
-  currentTeam: 'A',
+  currentTeam: "A",
   usedWordIds: [],
   currentBatch: [],
 
   setSettings: (settings) => set((state) => ({ ...state, ...settings })),
 
-  addScore: (points) => set((state) => {
-    const team = state.currentTeam;
-    return {
-      scores: { ...state.scores, [team]: state.scores[team] + points }
-    };
-  }),
+  toggleCategory: (cat) =>
+    set((state) => {
+      const isSelected = state.categories.includes(cat);
+      if (isSelected) {
+        if (state.categories.length === 1) return state; // Must have at least 1
+        return { categories: state.categories.filter((c) => c !== cat) };
+      }
+      return { categories: [...state.categories, cat] };
+    }),
 
-  switchTeam: () => set((state) => ({
-    currentTeam: state.currentTeam === 'A' ? 'B' : 'A'
-  })),
+  selectAllCategories: () => set({ categories: [...ALL_CATEGORIES] }),
 
-  resetGame: () => set({
-    scores: { A: 0, B: 0 },
-    currentTeam: 'A',
-    usedWordIds: [],
-    currentBatch: []
-  }),
+  addScore: (points) =>
+    set((state) => {
+      const team = state.currentTeam;
+      return {
+        scores: { ...state.scores, [team]: state.scores[team] + points },
+      };
+    }),
+
+  switchTeam: () =>
+    set((state) => ({
+      currentTeam: state.currentTeam === "A" ? "B" : "A",
+    })),
+
+  resetGame: () =>
+    set({
+      scores: { A: 0, B: 0 },
+      currentTeam: "A",
+      usedWordIds: [],
+      currentBatch: [],
+    }),
 
   generateBatch: () => {
-    const { usedWordIds } = get();
-    
-    // 1. Get available words
-    let available = allWords.filter(w => !usedWordIds.includes(w.id));
-    
-    // Reset if deck is empty
-    if (available.length < 10) {
-        available = allWords;
-        set({ usedWordIds: [] });
+    const { usedWordIds, categories } = get();
+
+    // 1. Filter Master List by SELECTED categories + UNUSED words
+    let available = allWords.filter(
+      (w) => categories.includes(w.category) && !usedWordIds.includes(w.id),
+    );
+
+    // Safety: If deck is empty, recycle used words (but keep selected categories)
+    if (available.length < 6) {
+      set({ usedWordIds: [] });
+      available = allWords.filter((w) => categories.includes(w.category));
     }
 
-    const pick = (arr: Word[]) => arr[Math.floor(Math.random() * arr.length)];
     const newBatch: Word[] = [];
     const batchIds: string[] = [];
 
-    const addWord = (subset: Word[]) => {
-        if (subset.length > 0) {
-            const w = pick(subset);
-            newBatch.push(w);
-            batchIds.push(w.id);
-        } else {
-             // Fallback
-             const random = pick(available.filter(w => !batchIds.includes(w.id)));
-             if (random) {
-                newBatch.push(random);
-                batchIds.push(random.id);
-             }
-        }
+    // Helper to pick a random word from a specific list
+    const pickOne = (list: Word[]) => {
+      if (list.length === 0) return null;
+      const word = list[Math.floor(Math.random() * list.length)];
+      return word;
     };
 
-    // Mandatory Categories (A, O, P)
-    addWord(available.filter(w => w.category === 'A' && !batchIds.includes(w.id)));
-    addWord(available.filter(w => w.category === 'O' && !batchIds.includes(w.id)));
-    addWord(available.filter(w => w.category === 'P' && !batchIds.includes(w.id)));
+    // --- 2. ENFORCE VARIETY (1 Action, 1 Object, 1 Person) ---
+    // Only enforce if the user has actually selected those categories
+    const mandatoryCats = ["A", "O", "P"];
 
-    // Fill the rest (Total 6)
+    mandatoryCats.forEach((cat) => {
+      if (categories.includes(cat)) {
+        // Get available words for this mandatory category
+        const specificPool = available.filter(
+          (w) => w.category === cat && !batchIds.includes(w.id),
+        );
+        const word = pickOne(specificPool);
+        if (word) {
+          newBatch.push(word);
+          batchIds.push(word.id);
+        }
+      }
+    });
+
+    // --- 3. FILL THE REST (Randomly) ---
     while (newBatch.length < 6) {
-        const remaining = available.filter(w => !batchIds.includes(w.id));
-        if (remaining.length === 0) break;
-        addWord(remaining);
+      // Pool of remaining valid words
+      const remainingPool = available.filter((w) => !batchIds.includes(w.id));
+      if (remainingPool.length === 0) break;
+
+      const word = pickOne(remainingPool);
+      if (word) {
+        newBatch.push(word);
+        batchIds.push(word.id);
+      }
     }
 
+    // 4. Shuffle the final batch so "Action" isn't always the first card
+    const shuffledBatch = newBatch.sort(() => Math.random() - 0.5);
+
     set((state) => ({
-        currentBatch: newBatch,
-        usedWordIds: [...state.usedWordIds, ...batchIds]
+      currentBatch: shuffledBatch,
+      usedWordIds: [...state.usedWordIds, ...batchIds],
     }));
-  }
+  },
 }));
