@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "scheme": "mimica",
+    "userInterfaceStyle": "automatic",
+    "orientation": "default",
+    "web": {
+      "bundler": "metro"
+    },
+    "name": "mimica",
+    "slug": "mimica",
+    "plugins": [
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "android": {
+      "package": "com.anonymous.mimica"
+    },
+    "ios": {
+      "bundleIdentifier": "com.anonymous.mimica"
+    }
+  }
+}

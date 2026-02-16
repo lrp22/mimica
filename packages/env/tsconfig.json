@@ -1,0 +1,3 @@
+{
+  "extends": "@mimica/config/tsconfig.base.json"
+}
