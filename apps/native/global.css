@@ -3,3 +3,120 @@
 @import "heroui-native/styles";
 
 @source './node_modules/heroui-native/lib';
+
+/* global.css */
+@layer theme {
+  :root {
+    @variant light {
+      /* Base Colors */
+      --background: oklch(0.9911 0 0);
+      --foreground: oklch(0.2046 0 0);
+
+      /* Surface: Used for Cards, Accordions (Mapping from your --card) */
+      --surface: oklch(0.9911 0 0);
+      --surface-foreground: oklch(0.2046 0 0);
+
+      --surface-secondary: oklch(0.994 0 0); /* Mapping from your --secondary */
+      --surface-secondary-foreground: oklch(0.2046 0 0);
+
+      --surface-tertiary: oklch(0.9461 0 0); /* Mapping from your --muted */
+      --surface-tertiary-foreground: oklch(0.2435 0 0);
+
+      /* Overlay: Used for Dialogs, Popovers, Modals */
+      --overlay: oklch(0.9911 0 0);
+      --overlay-foreground: oklch(0.4386 0 0);
+
+      /* General UI States */
+      --muted: oklch(0.9461 0 0);
+      --default: oklch(0.9731 0 0); /* Mapping from your --input */
+      --default-foreground: oklch(0.2435 0 0);
+
+      /* Accent / Brand */
+      --accent: oklch(0.8348 0.1302 160.908); /* Mapping from your --primary */
+      --accent-foreground: oklch(0.2626 0.0147 166.4589);
+
+      /* Status Colors */
+      --success: oklch(
+        0.8348 0.1302 160.908
+      ); /* Defaulting to your primary green-ish */
+      --success-foreground: oklch(0.2626 0.0147 166.4589);
+
+      --danger: oklch(
+        0.5523 0.1927 32.7272
+      ); /* Mapping from your --destructive */
+      --danger-foreground: oklch(0.9934 0.0032 17.2118);
+
+      --warning: oklch(0.7686 0.1647 70.0804); /* Mapping from your --chart-4 */
+      --warning-foreground: oklch(0.2046 0 0);
+
+      /* Misc */
+      --border: oklch(0.9037 0 0);
+      --separator: oklch(0.9037 0 0);
+      --focus: var(--accent);
+      --link: oklch(0.6231 0.188 259.8145); /* Mapping from your --chart-2 */
+
+      /* Component Specific */
+      --segment: oklch(0.9731 0 0);
+      --segment-foreground: oklch(0.2046 0 0);
+
+      /* Shadows */
+      --surface-shadow: var(--shadow-sm);
+      --overlay-shadow: var(--shadow-lg);
+      --field-shadow: var(--shadow-xs);
+    }
+
+    @variant dark {
+      /* Base Colors */
+      --background: oklch(0.1591 0 0);
+      --foreground: oklch(0.9501 0.0097 252.8122);
+
+      /* Surface */
+      --surface: oklch(0.209 0 0);
+      --surface-foreground: oklch(0.9501 0.0097 252.8122);
+
+      --surface-secondary: oklch(0.2603 0 0);
+      --surface-secondary-foreground: oklch(0.9851 0 0);
+
+      --surface-tertiary: oklch(0.252 0 0);
+      --surface-tertiary-foreground: oklch(0.6993 0 0);
+
+      /* Overlay */
+      --overlay: oklch(0.2603 0 0);
+      --overlay-foreground: oklch(0.7348 0 0);
+
+      /* General UI States */
+      --muted: oklch(0.252 0 0);
+      --default: oklch(0.2603 0 0);
+      --default-foreground: oklch(0.6993 0 0);
+
+      /* Accent / Brand */
+      --accent: oklch(0.76 0.2222 144.2837);
+      --accent-foreground: oklch(0 0 0);
+
+      /* Status Colors */
+      --success: oklch(0.8003 0.1821 151.711);
+      --success-foreground: oklch(0.1591 0 0);
+
+      --danger: oklch(0.6509 0.2199 25.0358);
+      --danger-foreground: oklch(1 0 0);
+
+      --warning: oklch(0.8369 0.1644 84.4286);
+      --warning-foreground: oklch(0.209 0 0);
+
+      /* Misc */
+      --border: oklch(0.2809 0 0);
+      --separator: oklch(0.2809 0 0);
+      --focus: var(--accent);
+      --link: oklch(0.7137 0.1434 254.624);
+
+      /* Component Specific */
+      --segment: oklch(0.1822 0 0);
+      --segment-foreground: oklch(0.6301 0 0);
+
+      /* Shadows (Dark mode usually uses inset borders or flat shadows) */
+      --surface-shadow: 0 0 0 0 transparent;
+      --overlay-shadow: 0 0 1px 0 rgba(255, 255, 255, 0.1) inset;
+      --field-shadow: 0 0 0 0 transparent;
+    }
+  }
+}
