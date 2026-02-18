@@ -1,15 +1,8 @@
 import { router } from "expo-router";
 import { Button, Card, cn } from "heroui-native";
-import {
-  Text,
-  View,
-  Pressable,
-  ScrollView,
-  Modal,
-  TextInput,
-} from "react-native";
+import { Text, View, Pressable, ScrollView } from "react-native";
 import { Container } from "@/components/container";
-import { useGameStore } from "@/store/game-store";
+import { useGameStore, SCORE_OPTIONS, TIMER_OPTIONS } from "@/store/game-store";
 import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,18 +12,21 @@ const StyledIonicons = withUniwind(Ionicons);
 
 export default function SetupScreen() {
   const store = useGameStore();
-  const [showSettings, setShowSettings] = useState(false);
-  const [localTeamA, setLocalTeamA] = useState(store.teamA);
-  const [localTeamB, setLocalTeamB] = useState(store.teamB);
   const insets = useSafeAreaInsets();
 
-  // Helper to check selection
   const isSelected = (cat: string) => store.categories.includes(cat);
   const isAllSelected = store.categories.length === 5;
 
   const handleStart = () => {
     store.resetGame();
     router.push("/interstitial");
+  };
+
+  const formatTime = (seconds: number) => {
+    if (seconds < 60) return `${seconds}s`;
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return s > 0 ? `${m}m${s}s` : `${m}min`;
   };
 
   const CategoryCard = ({ id, label, sub, icon }: any) => {
@@ -79,11 +75,73 @@ export default function SetupScreen() {
 
   return (
     <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
-      {/* SCROLLABLE CONTENT */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ padding: 16, paddingBottom: 20 }}
       >
+        {/* ─── TIMER SETTING ──────────────────────────── */}
+        <Text className="text-foreground font-bold text-xl mb-3">
+          <Ionicons name="timer-outline" size={20} /> Tempo por Rodada
+        </Text>
+        <View className="flex-row flex-wrap gap-2 mb-8">
+          {TIMER_OPTIONS.map((t) => {
+            const active = store.roundTime === t;
+            return (
+              <Pressable key={t} onPress={() => store.setRoundTime(t)}>
+                <View
+                  className={cn(
+                    "px-5 py-3 rounded-2xl border-2",
+                    active
+                      ? "border-accent bg-accent/20"
+                      : "border-border bg-surface",
+                  )}
+                >
+                  <Text
+                    className={cn(
+                      "font-bold text-base",
+                      active ? "text-accent" : "text-foreground",
+                    )}
+                  >
+                    {formatTime(t)}
+                  </Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {/* ─── MAX SCORE SETTING ──────────────────────── */}
+        <Text className="text-foreground font-bold text-xl mb-3">
+          <Ionicons name="trophy-outline" size={20} /> Pontos para Vencer
+        </Text>
+        <View className="flex-row flex-wrap gap-2 mb-8">
+          {SCORE_OPTIONS.map((s) => {
+            const active = store.maxScore === s;
+            return (
+              <Pressable key={s} onPress={() => store.setMaxScore(s)}>
+                <View
+                  className={cn(
+                    "px-4 py-3 rounded-2xl border-2",
+                    active
+                      ? "border-accent bg-accent/20"
+                      : "border-border bg-surface",
+                  )}
+                >
+                  <Text
+                    className={cn(
+                      "font-bold text-base",
+                      active ? "text-accent" : "text-foreground",
+                    )}
+                  >
+                    {s} pts
+                  </Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {/* ─── CATEGORIES ─────────────────────────────── */}
         <Text className="text-foreground font-bold text-xl mb-4">
           Categorias
         </Text>
@@ -160,7 +218,7 @@ export default function SetupScreen() {
         </View>
       </ScrollView>
 
-      {/* START BUTTON — always pinned to bottom */}
+      {/* START BUTTON */}
       <View
         className="px-4 pt-2 bg-background"
         style={{ paddingBottom: insets.bottom + 10 }}

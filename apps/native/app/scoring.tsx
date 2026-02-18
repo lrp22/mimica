@@ -1,165 +1,92 @@
 import { useState } from "react";
 import { router } from "expo-router";
-import { Button, Surface } from "heroui-native";
-import { Text, View, Pressable, ScrollView } from "react-native";
-import { Container } from "@/components/container";
+import { Button } from "heroui-native";
+import { Text, View, Pressable } from "react-native";
 import { useGameStore } from "@/store/game-store";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Scoring() {
-  const {
-    currentBatch,
-    addScore,
-    switchTeam,
-    maxScore,
-    scores,
-    currentTeam,
-    teamA,
-    teamB,
-  } = useGameStore();
-  const [selected, setSelected] = useState<string[]>([]);
-  const [isSubmitted, setIsSubmitted] = useState(false); // Controls view state
+  const { currentBatch, currentTeam, teamA, teamB, submitRound } =
+    useGameStore();
+  const [correctIds, setCorrectIds] = useState<string[]>([]);
+  const insets = useSafeAreaInsets();
 
   const activeTeamName = currentTeam === "A" ? teamA : teamB;
 
   const handleToggle = (id: string) => {
-    if (isSubmitted) return; // Lock after submit
-    setSelected((s) =>
-      s.includes(id) ? s.filter((i) => i !== id) : [...s, id],
+    setCorrectIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
     );
   };
 
   const handleSubmit = () => {
-    addScore(selected.length);
-    setIsSubmitted(true);
+    submitRound(correctIds);
+    router.replace("/scoreboard");
   };
 
-  const handleNextRound = () => {
-    const newTotal =
-      (currentTeam === "A" ? scores.A : scores.B) + selected.length;
-
-    // Check Winner
-    if (newTotal >= maxScore) {
-      alert(`🏆 ${activeTeamName} WINS!`);
-      router.replace("/"); // Back to Home
-    } else {
-      switchTeam();
-      router.replace("/interstitial");
-    }
-  };
-
-  // --- VIEW 1: CHECKBOXES (Validation) ---
-  if (!isSubmitted) {
-    return (
-      <Container className="bg-zinc-950 p-6">
-        <Text className="text-center text-zinc-400 font-bold uppercase tracking-widest mb-2">
-          Time's Up!
-        </Text>
-        <Text className="text-center text-white text-3xl font-black mb-8">
-          What did you get?
-        </Text>
-
-        <ScrollView className="flex-1 gap-3">
-          {currentBatch.map((item) => {
-            const isChecked = selected.includes(item.id);
-            return (
-              <Pressable
-                key={item.id}
-                onPress={() => handleToggle(item.id)}
-                className="mb-3"
-              >
-                <Surface
-                  className={`p-5 rounded-2xl flex-row justify-between border-2 ${isChecked ? "border-fuchsia-500 bg-fuchsia-900/20" : "border-zinc-800 bg-zinc-900"}`}
-                >
-                  <Text
-                    className={`text-lg font-bold ${isChecked ? "text-white" : "text-zinc-500"}`}
-                  >
-                    {item.word}
-                  </Text>
-                  <Ionicons
-                    name={isChecked ? "checkbox" : "square-outline"}
-                    size={28}
-                    color={isChecked ? "#d946ef" : "#52525b"}
-                  />
-                </Surface>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-
-        <Button
-          size="lg"
-          className="h-16 rounded-2xl bg-fuchsia-600 mt-4"
-          onPress={handleSubmit}
-        >
-          <Text className="text-white font-bold text-xl">
-            SUBMIT SCORE ({selected.length})
-          </Text>
-        </Button>
-      </Container>
-    );
-  }
-
-  // --- VIEW 2: SCOREBOARD (E) ---
   return (
-    <Container className="bg-zinc-950 justify-center p-6">
-      <View className="items-center mb-10">
-        <Text className="text-4xl mb-2">📊</Text>
-        <Text className="text-white text-3xl font-black uppercase tracking-widest">
-          Scoreboard
+    <View
+      className="flex-1 bg-background px-5"
+      style={{
+        paddingTop: insets.top + 16,
+        paddingBottom: insets.bottom + 16,
+      }}
+    >
+      {/* ── Header ───────────────────────────────────── */}
+      <View className="items-center mb-6">
+        <Ionicons name="alarm" size={40} color="#ef4444" />
+        <Text className="text-foreground text-3xl font-black mt-3">Tempo!</Text>
+        <Text className="text-muted text-base mt-1">
+          Marque as palavras que{" "}
+          <Text className="text-accent font-bold">{activeTeamName}</Text>{" "}
+          acertou
         </Text>
       </View>
 
-      {/* Team A Card */}
-      <Surface
-        className={`p-6 rounded-3xl mb-4 flex-row justify-between items-center ${currentTeam === "A" ? "border-2 border-fuchsia-500 bg-zinc-900" : "bg-zinc-900 opacity-60"}`}
-      >
-        <View>
-          <Text className="text-zinc-400 text-xs font-bold uppercase">
-            Team 1
-          </Text>
-          <Text className="text-white text-2xl font-bold">{teamA}</Text>
-        </View>
-        <Text className="text-4xl font-black text-fuchsia-500">
-          {scores.A + (currentTeam === "A" ? selected.length : 0)}
-        </Text>
-      </Surface>
+      {/* ── Word Cards ───────────────────────────────── */}
+      <View className="flex-1 gap-3 justify-center">
+        {currentBatch.map((item) => {
+          const isCorrect = correctIds.includes(item.id);
+          return (
+            <Pressable key={item.id} onPress={() => handleToggle(item.id)}>
+              <View
+                className={`p-4 rounded-2xl flex-row items-center border-2 ${
+                  isCorrect
+                    ? "border-accent bg-accent/10"
+                    : "border-border bg-surface"
+                }`}
+              >
+                <Ionicons
+                  name={isCorrect ? "checkmark-circle" : "close-circle"}
+                  size={28}
+                  color={isCorrect ? "#4ade80" : "#52525b"}
+                />
+                <Text
+                  className={`text-lg font-bold flex-1 ml-4 ${
+                    isCorrect ? "text-foreground" : "text-muted"
+                  }`}
+                >
+                  {item.word}
+                </Text>
+                {isCorrect && (
+                  <Text className="text-accent font-black text-sm">+1</Text>
+                )}
+              </View>
+            </Pressable>
+          );
+        })}
+      </View>
 
-      {/* VS */}
-      <Text className="text-center text-zinc-600 font-black italic text-xl mb-4">
-        VS
-      </Text>
-
-      {/* Team B Card */}
-      <Surface
-        className={`p-6 rounded-3xl mb-8 flex-row justify-between items-center ${currentTeam === "B" ? "border-2 border-fuchsia-500 bg-zinc-900" : "bg-zinc-900 opacity-60"}`}
-      >
-        <View>
-          <Text className="text-zinc-400 text-xs font-bold uppercase">
-            Team 2
-          </Text>
-          <Text className="text-white text-2xl font-bold">{teamB}</Text>
-        </View>
-        <Text className="text-4xl font-black text-blue-500">
-          {scores.B + (currentTeam === "B" ? selected.length : 0)}
-        </Text>
-      </Surface>
-
-      <View className="h-[1px] bg-zinc-800 w-full mb-8" />
-
+      {/* ── Submit Button ────────────────────────────── */}
       <Button
-        size="lg"
-        className="h-16 rounded-2xl bg-white"
-        onPress={handleNextRound}
+        className="h-20 rounded-2xl bg-accent mt-6"
+        onPress={handleSubmit}
       >
-        <Text className="text-black font-black text-xl">START NEXT ROUND</Text>
-        <Ionicons
-          name="arrow-forward"
-          size={24}
-          color="black"
-          style={{ marginLeft: 8 }}
-        />
+        <Text className="text-accent-foreground font-black text-2xl uppercase">
+          CONFIRMAR · {correctIds.length}/{currentBatch.length}
+        </Text>
       </Button>
-    </Container>
+    </View>
   );
 }

@@ -22,6 +22,7 @@ export default function Layout() {
               <Stack.Screen name="interstitial" />
               <Stack.Screen name="game" />
               <Stack.Screen name="scoring" />
+              <Stack.Screen name="scoreboard" />
             </Stack>
           </HeroUINativeProvider>
         </AppThemeProvider>

@@ -21,23 +21,30 @@ interface GameState {
   currentTeam: "A" | "B";
   usedWordIds: string[];
   currentBatch: Word[];
+  lastRoundCorrectIds: string[];
+  roundNumber: number;
 
   // Actions
   setSettings: (settings: Partial<GameState>) => void;
   toggleCategory: (cat: string) => void;
   selectAllCategories: () => void;
-  addScore: (points: number) => void;
-  switchTeam: () => void;
+  setMaxScore: (score: number) => void;
+  setRoundTime: (time: number) => void;
+  submitRound: (correctIds: string[]) => void;
+  advanceToNextTurn: () => void;
   generateBatch: () => void;
   resetGame: () => void;
 }
 
 const ALL_CATEGORIES = ["A", "O", "P", "L", "D"];
 
+export const SCORE_OPTIONS = [24, 30, 36, 42] as const;
+export const TIMER_OPTIONS = [45, 60, 90, 120] as const;
+
 export const useGameStore = create<GameState>((set, get) => ({
-  teamA: "Red Team",
-  teamB: "Blue Team",
-  maxScore: 30,
+  teamA: "Time A",
+  teamB: "Time B",
+  maxScore: 24,
   roundTime: 60,
   categories: [...ALL_CATEGORIES],
 
@@ -45,6 +52,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   currentTeam: "A",
   usedWordIds: [],
   currentBatch: [],
+  lastRoundCorrectIds: [],
+  roundNumber: 1,
 
   setSettings: (settings) => set((state) => ({ ...state, ...settings })),
 
@@ -52,7 +61,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     set((state) => {
       const isSelected = state.categories.includes(cat);
       if (isSelected) {
-        if (state.categories.length === 1) return state; // Must have at least 1
+        if (state.categories.length === 1) return state;
         return { categories: state.categories.filter((c) => c !== cat) };
       }
       return { categories: [...state.categories, cat] };
@@ -60,17 +69,26 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   selectAllCategories: () => set({ categories: [...ALL_CATEGORIES] }),
 
-  addScore: (points) =>
+  setMaxScore: (score) => set({ maxScore: score }),
+
+  setRoundTime: (time) => set({ roundTime: time }),
+
+  submitRound: (correctIds) =>
     set((state) => {
       const team = state.currentTeam;
       return {
-        scores: { ...state.scores, [team]: state.scores[team] + points },
+        lastRoundCorrectIds: correctIds,
+        scores: {
+          ...state.scores,
+          [team]: state.scores[team] + correctIds.length,
+        },
       };
     }),
 
-  switchTeam: () =>
+  advanceToNextTurn: () =>
     set((state) => ({
       currentTeam: state.currentTeam === "A" ? "B" : "A",
+      roundNumber: state.roundNumber + 1,
     })),
 
   resetGame: () =>
@@ -79,17 +97,17 @@ export const useGameStore = create<GameState>((set, get) => ({
       currentTeam: "A",
       usedWordIds: [],
       currentBatch: [],
+      lastRoundCorrectIds: [],
+      roundNumber: 1,
     }),
 
   generateBatch: () => {
     const { usedWordIds, categories } = get();
 
-    // 1. Filter Master List by SELECTED categories + UNUSED words
     let available = allWords.filter(
       (w) => categories.includes(w.category) && !usedWordIds.includes(w.id),
     );
 
-    // Safety: If deck is empty, recycle used words (but keep selected categories)
     if (available.length < 6) {
       set({ usedWordIds: [] });
       available = allWords.filter((w) => categories.includes(w.category));
@@ -98,20 +116,14 @@ export const useGameStore = create<GameState>((set, get) => ({
     const newBatch: Word[] = [];
     const batchIds: string[] = [];
 
-    // Helper to pick a random word from a specific list
     const pickOne = (list: Word[]) => {
       if (list.length === 0) return null;
-      const word = list[Math.floor(Math.random() * list.length)];
-      return word;
+      return list[Math.floor(Math.random() * list.length)];
     };
 
-    // --- 2. ENFORCE VARIETY (1 Action, 1 Object, 1 Person) ---
-    // Only enforce if the user has actually selected those categories
     const mandatoryCats = ["A", "O", "P"];
-
     mandatoryCats.forEach((cat) => {
       if (categories.includes(cat)) {
-        // Get available words for this mandatory category
         const specificPool = available.filter(
           (w) => w.category === cat && !batchIds.includes(w.id),
         );
@@ -123,12 +135,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
     });
 
-    // --- 3. FILL THE REST (Randomly) ---
     while (newBatch.length < 6) {
-      // Pool of remaining valid words
       const remainingPool = available.filter((w) => !batchIds.includes(w.id));
       if (remainingPool.length === 0) break;
-
       const word = pickOne(remainingPool);
       if (word) {
         newBatch.push(word);
@@ -136,7 +145,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
     }
 
-    // 4. Shuffle the final batch so "Action" isn't always the first card
     const shuffledBatch = newBatch.sort(() => Math.random() - 0.5);
 
     set((state) => ({
