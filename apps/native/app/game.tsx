@@ -4,10 +4,8 @@ import { Button, Surface } from "heroui-native";
 import { Text, View, Vibration } from "react-native";
 import { useGameStore } from "@/store/game-store";
 import { Ionicons } from "@expo/vector-icons";
-import { useAudioPlayer } from "expo-audio";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-const timesUpSound = require("@/assets/sounds/times-up.mp3");
+import { playTimesUpSound } from "@/utils/sounds";
 
 const CATEGORY_STYLES: Record<
   string,
@@ -28,23 +26,6 @@ export default function Game() {
   const [isFinished, setIsFinished] = useState(false);
   const insets = useSafeAreaInsets();
 
-  const player = useAudioPlayer(
-    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-  );
-
-  const playTimesUp = useCallback(() => {
-    console.log("Sound triggered");
-
-    // Check if the player is actually initialized
-    if (player && player.isLoaded) {
-      player.play();
-    } else {
-      console.warn("Player not loaded yet");
-    }
-
-    Vibration.vibrate([0, 500, 200, 500]);
-  }, [player]);
-
   // ── Countdown timer ───────────────────────────────
   useEffect(() => {
     if (isFinished) return;
@@ -55,14 +36,19 @@ export default function Game() {
 
     if (timeLeft <= 0) {
       setIsFinished(true);
-      playTimesUp();
+
+      // Fire-and-forget: the player lives at module level,
+      // so it keeps playing after this component unmounts.
+      playTimesUpSound();
+      Vibration.vibrate([0, 500, 200, 500]);
+
       router.replace("/scoring");
       return;
     }
 
     const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
     return () => clearInterval(timer);
-  }, [timeLeft, isFinished, playTimesUp]);
+  }, [timeLeft, isFinished]);
 
   const handleFinish = () => {
     if (isFinished) return;
