@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { router } from "expo-router";
 import { Button, Surface } from "heroui-native";
 import { Text, View, Vibration } from "react-native";
@@ -28,7 +28,22 @@ export default function Game() {
   const [isFinished, setIsFinished] = useState(false);
   const insets = useSafeAreaInsets();
 
-  const player = useAudioPlayer(timesUpSound);
+  const player = useAudioPlayer(
+    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+  );
+
+  const playTimesUp = useCallback(() => {
+    console.log("Sound triggered");
+
+    // Check if the player is actually initialized
+    if (player && player.isLoaded) {
+      player.play();
+    } else {
+      console.warn("Player not loaded yet");
+    }
+
+    Vibration.vibrate([0, 500, 200, 500]);
+  }, [player]);
 
   // ── Countdown timer ───────────────────────────────
   useEffect(() => {
@@ -40,15 +55,14 @@ export default function Game() {
 
     if (timeLeft <= 0) {
       setIsFinished(true);
-      player.seekTo(0);
-      player.play();
+      playTimesUp();
       router.replace("/scoring");
       return;
     }
 
     const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
     return () => clearInterval(timer);
-  }, [timeLeft, isFinished]);
+  }, [timeLeft, isFinished, playTimesUp]);
 
   const handleFinish = () => {
     if (isFinished) return;

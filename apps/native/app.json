@@ -9,7 +9,8 @@
     "name": "mimica",
     "slug": "mimica",
     "plugins": [
-      "expo-font"
+      "expo-font",
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true,
