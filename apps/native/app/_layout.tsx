@@ -7,10 +7,19 @@ import { Uniwind } from "uniwind";
 import { AppThemeProvider } from "@/contexts/app-theme-context";
 import { useEffect } from "react";
 
+// Screens where accidental back navigation would ruin the game
+const GAME_FLOW_SCREENS = [
+  "interstitial",
+  "game",
+  "scoring",
+  "scoreboard",
+] as const;
+
 export default function Layout() {
   useEffect(() => {
     Uniwind.setTheme("dark");
   }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <KeyboardProvider>
@@ -19,10 +28,16 @@ export default function Layout() {
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="index" />
               <Stack.Screen name="setup" />
-              <Stack.Screen name="interstitial" />
-              <Stack.Screen name="game" />
-              <Stack.Screen name="scoring" />
-              <Stack.Screen name="scoreboard" />
+              {GAME_FLOW_SCREENS.map((name) => (
+                <Stack.Screen
+                  key={name}
+                  name={name}
+                  options={{
+                    gestureEnabled: false,
+                    animation: "fade",
+                  }}
+                />
+              ))}
             </Stack>
           </HeroUINativeProvider>
         </AppThemeProvider>

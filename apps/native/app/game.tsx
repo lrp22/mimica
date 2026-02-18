@@ -1,11 +1,13 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { router } from "expo-router";
 import { Button, Surface } from "heroui-native";
 import { Text, View, Vibration } from "react-native";
 import { useGameStore } from "@/store/game-store";
 import { Ionicons } from "@expo/vector-icons";
-import { Audio } from "expo-av";
+import { useAudioPlayer } from "expo-audio";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const timesUpSound = require("@/assets/sounds/times-up.mp3");
 
 const CATEGORY_STYLES: Record<
   string,
@@ -24,41 +26,22 @@ export default function Game() {
   const { currentBatch, roundTime } = useGameStore();
   const [timeLeft, setTimeLeft] = useState(roundTime);
   const [isFinished, setIsFinished] = useState(false);
-  const soundRef = useRef<Audio.Sound | null>(null);
   const insets = useSafeAreaInsets();
 
-  // ── Preload buzzer sound ──────────────────────────
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const { sound } = await Audio.Sound.createAsync(
-          require("@/assets/sounds/times-up.mp3"),
-        );
-        soundRef.current = sound;
-      } catch (e) {
-        console.warn("Could not load buzzer sound", e);
-      }
-    };
-    load();
-
-    return () => {
-      soundRef.current?.unloadAsync();
-    };
-  }, []);
+  const player = useAudioPlayer(timesUpSound);
 
   // ── Countdown timer ───────────────────────────────
   useEffect(() => {
     if (isFinished) return;
 
-    // Haptic tick for last 10 seconds
-    if (timeLeft <= 3 && timeLeft > 0) {
+    if (timeLeft <= 10 && timeLeft > 0) {
       Vibration.vibrate(50);
     }
 
-    // Time's up
     if (timeLeft <= 0) {
       setIsFinished(true);
-      playTimesUp();
+      player.seekTo(0);
+      player.play();
       router.replace("/scoring");
       return;
     }
@@ -66,16 +49,6 @@ export default function Game() {
     const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
     return () => clearInterval(timer);
   }, [timeLeft, isFinished]);
-
-  const playTimesUp = async () => {
-    try {
-      await soundRef.current?.setPositionAsync(0);
-      await soundRef.current?.playAsync();
-    } catch {
-      // Fallback to vibration if audio fails
-      Vibration.vibrate([0, 500, 200, 500]);
-    }
-  };
 
   const handleFinish = () => {
     if (isFinished) return;
@@ -141,7 +114,6 @@ export default function Game() {
                 </Text>
               </View>
 
-              {/* Difficulty stars */}
               <View className="flex-row gap-0.5">
                 {[...Array(3)].map((_, i) => (
                   <Ionicons
