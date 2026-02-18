@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { withUniwind } from "uniwind";
 
 const StyledIonicons = withUniwind(Ionicons);
+
 export default function SetupScreen() {
   const store = useGameStore();
   const [showSettings, setShowSettings] = useState(false);
@@ -77,11 +78,11 @@ export default function SetupScreen() {
   };
 
   return (
-    <Container className="px-4 flex-1" isScrollable={false}>
-      {/* HEADER */}
+    <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
+      {/* SCROLLABLE CONTENT */}
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 20 }}
       >
         <Text className="text-foreground font-bold text-xl mb-4">
           Categorias
@@ -158,9 +159,10 @@ export default function SetupScreen() {
           />
         </View>
       </ScrollView>
-      {/* START BUTTON */}
+
+      {/* START BUTTON — always pinned to bottom */}
       <View
-        className="pt-2 bg-background" // Match background to prevent "see-through" issues
+        className="px-4 pt-2 bg-background"
         style={{ paddingBottom: insets.bottom + 10 }}
       >
         <Button
@@ -178,6 +180,6 @@ export default function SetupScreen() {
           />
         </Button>
       </View>
-    </Container>
+    </View>
   );
 }
