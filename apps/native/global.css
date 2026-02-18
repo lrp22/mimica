@@ -4,7 +4,53 @@
 
 @source './node_modules/heroui-native/lib';
 
-/* global.css */
+/* 
+  1. Map CSS variables to Tailwind Utilities 
+  This tells Tailwind: "When I write 'bg-accent', use 'var(--accent)'"
+*/
+@theme {
+  /* Base */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  /* Surface */
+  --color-surface: var(--surface);
+  --color-surface-foreground: var(--surface-foreground);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-surface-secondary-foreground: var(--surface-secondary-foreground);
+  --color-surface-tertiary: var(--surface-tertiary);
+  --color-surface-tertiary-foreground: var(--surface-tertiary-foreground);
+
+  /* Overlay */
+  --color-overlay: var(--overlay);
+  --color-overlay-foreground: var(--overlay-foreground);
+
+  /* UI States */
+  --color-muted: var(--muted);
+  --color-default: var(--default);
+  --color-default-foreground: var(--default-foreground);
+
+  /* Accent / Brand */
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  /* Status */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+
+  /* Misc */
+  --color-border: var(--border);
+  --color-separator: var(--separator);
+  --color-link: var(--link);
+  --color-segment: var(--segment);
+  --color-segment-foreground: var(--segment-foreground);
+}
+
+/* 2. Define the values of those variables */
 @layer theme {
   :root {
     @variant light {
@@ -12,48 +58,42 @@
       --background: oklch(0.9911 0 0);
       --foreground: oklch(0.2046 0 0);
 
-      /* Surface: Used for Cards, Accordions (Mapping from your --card) */
+      /* Surface */
       --surface: oklch(0.9911 0 0);
       --surface-foreground: oklch(0.2046 0 0);
-
-      --surface-secondary: oklch(0.994 0 0); /* Mapping from your --secondary */
+      --surface-secondary: oklch(0.994 0 0);
       --surface-secondary-foreground: oklch(0.2046 0 0);
-
-      --surface-tertiary: oklch(0.9461 0 0); /* Mapping from your --muted */
+      --surface-tertiary: oklch(0.9461 0 0);
       --surface-tertiary-foreground: oklch(0.2435 0 0);
 
-      /* Overlay: Used for Dialogs, Popovers, Modals */
+      /* Overlay */
       --overlay: oklch(0.9911 0 0);
       --overlay-foreground: oklch(0.4386 0 0);
 
       /* General UI States */
       --muted: oklch(0.9461 0 0);
-      --default: oklch(0.9731 0 0); /* Mapping from your --input */
+      --default: oklch(0.9731 0 0);
       --default-foreground: oklch(0.2435 0 0);
 
       /* Accent / Brand */
-      --accent: oklch(0.8348 0.1302 160.908); /* Mapping from your --primary */
+      --accent: oklch(0.8348 0.1302 160.908);
       --accent-foreground: oklch(0.2626 0.0147 166.4589);
 
       /* Status Colors */
-      --success: oklch(
-        0.8348 0.1302 160.908
-      ); /* Defaulting to your primary green-ish */
+      --success: oklch(0.8348 0.1302 160.908);
       --success-foreground: oklch(0.2626 0.0147 166.4589);
 
-      --danger: oklch(
-        0.5523 0.1927 32.7272
-      ); /* Mapping from your --destructive */
+      --danger: oklch(0.5523 0.1927 32.7272);
       --danger-foreground: oklch(0.9934 0.0032 17.2118);
 
-      --warning: oklch(0.7686 0.1647 70.0804); /* Mapping from your --chart-4 */
+      --warning: oklch(0.7686 0.1647 70.0804);
       --warning-foreground: oklch(0.2046 0 0);
 
       /* Misc */
       --border: oklch(0.9037 0 0);
       --separator: oklch(0.9037 0 0);
       --focus: var(--accent);
-      --link: oklch(0.6231 0.188 259.8145); /* Mapping from your --chart-2 */
+      --link: oklch(0.6231 0.188 259.8145);
 
       /* Component Specific */
       --segment: oklch(0.9731 0 0);
@@ -73,10 +113,8 @@
       /* Surface */
       --surface: oklch(0.209 0 0);
       --surface-foreground: oklch(0.9501 0.0097 252.8122);
-
       --surface-secondary: oklch(0.2603 0 0);
       --surface-secondary-foreground: oklch(0.9851 0 0);
-
       --surface-tertiary: oklch(0.252 0 0);
       --surface-tertiary-foreground: oklch(0.6993 0 0);
 
@@ -113,7 +151,7 @@
       --segment: oklch(0.1822 0 0);
       --segment-foreground: oklch(0.6301 0 0);
 
-      /* Shadows (Dark mode usually uses inset borders or flat shadows) */
+      /* Shadows */
       --surface-shadow: 0 0 0 0 transparent;
       --overlay-shadow: 0 0 1px 0 rgba(255, 255, 255, 0.1) inset;
       --field-shadow: 0 0 0 0 transparent;

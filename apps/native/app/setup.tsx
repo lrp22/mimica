@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { Button, Surface, Card, useThemeColor } from "heroui-native";
+import { Button, Card, cn } from "heroui-native";
 import {
   Text,
   View,
@@ -12,116 +12,116 @@ import { Container } from "@/components/container";
 import { useGameStore } from "@/store/game-store";
 import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { withUniwind } from "uniwind";
 
+const StyledIonicons = withUniwind(Ionicons);
 export default function SetupScreen() {
   const store = useGameStore();
   const [showSettings, setShowSettings] = useState(false);
   const [localTeamA, setLocalTeamA] = useState(store.teamA);
   const [localTeamB, setLocalTeamB] = useState(store.teamB);
+  const insets = useSafeAreaInsets();
 
   // Helper to check selection
   const isSelected = (cat: string) => store.categories.includes(cat);
-  const isAllSelected = store.categories.length === 5; // A, O, P, L, D
+  const isAllSelected = store.categories.length === 5;
 
   const handleStart = () => {
     store.resetGame();
     router.push("/interstitial");
   };
 
-  const CategoryCard = ({ id, label, sub, icon, color }: any) => {
+  const CategoryCard = ({ id, label, sub, icon }: any) => {
     const selected = isSelected(id);
     return (
       <Pressable
         className="w-[48%] mb-4"
         onPress={() => store.toggleCategory(id)}
       >
-        <Surface
-          variant="secondary"
-          className={`h-40 p-4 rounded-3xl justify-between border-2 ${selected ? "border-fuchsia-500 bg-fuchsia-500/10" : "border-zinc-800 bg-zinc-900"}`}
+        <Card
+          className={cn(
+            "h-30 border-2",
+            selected ? "border-accent bg-surface" : "border-border bg-surface",
+          )}
         >
-          <View className="flex-row justify-between">
+          <Card.Header className="flex-row justify-between pb-0">
             <View
-              className={`w-10 h-10 rounded-full items-center justify-center ${selected ? "bg-fuchsia-500" : "bg-zinc-700"}`}
+              className={cn(
+                "w-10 h-10 rounded-full items-center justify-center",
+                selected ? "bg-accent" : "bg-muted",
+              )}
             >
-              <Ionicons name={icon} size={20} color="white" />
+              <Ionicons
+                name={icon}
+                size={20}
+                color={selected ? "black" : "gray"}
+              />
             </View>
-            {selected && (
-              <View className="w-3 h-3 rounded-full bg-fuchsia-500" />
-            )}
-          </View>
-          <View>
-            <Text className="text-white font-bold text-lg">{label}</Text>
-            <Text className="text-zinc-500 text-xs">{sub}</Text>
-          </View>
-        </Surface>
+            {selected && <View className="w-3 h-3 rounded-full bg-accent" />}
+          </Card.Header>
+
+          <Card.Body className="justify-end">
+            <Card.Title
+              className={selected ? "text-foreground" : "text-foreground"}
+            >
+              {label}
+            </Card.Title>
+            <Card.Description className="text-xs text-success">
+              {sub}
+            </Card.Description>
+          </Card.Body>
+        </Card>
       </Pressable>
     );
   };
 
   return (
-    <Container className="bg-zinc-950 px-4 pt-4">
+    <Container className="px-4 flex-1" isScrollable={false}>
       {/* HEADER */}
-      <View className="flex-row justify-between items-center mb-6 mt-2">
-        <View>
-          <Text className="text-fuchsia-400 font-bold text-lg tracking-widest uppercase">
-            Charades Party
-          </Text>
-          <Text className="text-zinc-400 text-sm">Vamos jogar!</Text>
-        </View>
-        <Pressable
-          onPress={() => setShowSettings(true)}
-          className="w-10 h-10 bg-zinc-800 rounded-full items-center justify-center"
-        >
-          <Ionicons name="settings-outline" size={20} color="white" />
-        </Pressable>
-      </View>
-
-      {/* TEAM TOGGLE (Visual Only for now) */}
-      <View className="flex-row bg-zinc-900 p-1 rounded-full mb-8 border border-zinc-800">
-        <Pressable className="flex-1 bg-fuchsia-600 rounded-full py-2 items-center">
-          <Text className="text-white font-bold">2 Times</Text>
-        </Pressable>
-        <Pressable className="flex-1 py-2 items-center opacity-50">
-          <Text className="text-zinc-400 font-bold">3 Times</Text>
-        </Pressable>
-        <Pressable className="flex-1 py-2 items-center opacity-50">
-          <Text className="text-zinc-400 font-bold">4 Times</Text>
-        </Pressable>
-      </View>
-
-      <Text className="text-white font-bold text-xl mb-4">
-        Escolha as Categorias
-      </Text>
-
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 20 }}
       >
+        <Text className="text-foreground font-bold text-xl mb-4">
+          Categorias
+        </Text>
+
         {/* ALL THEMES CARD */}
         <Pressable onPress={store.selectAllCategories} className="mb-6">
-          <Surface
-            className={`p-6 rounded-3xl flex-row items-center border-2 ${isAllSelected ? "border-fuchsia-500 bg-zinc-900" : "border-zinc-800 bg-zinc-900"}`}
+          <Card
+            className={cn(
+              "border-2",
+              isAllSelected
+                ? "border-accent bg-surface"
+                : "border-border bg-surface",
+            )}
           >
-            <View className="w-14 h-14 rounded-full bg-gradient-to-tr from-yellow-400 to-fuchsia-500 items-center justify-center mr-4 bg-fuchsia-200">
-              <Ionicons name="infinite" size={30} color="#c026d3" />
-            </View>
-            <View className="flex-1">
-              <View className="flex-row justify-between items-center mb-1">
-                <Text className="text-white font-bold text-2xl">TODOS</Text>
-                {isAllSelected && (
-                  <View className="bg-fuchsia-500 px-2 py-1 rounded-md">
-                    <Text className="text-white text-[10px] font-bold">
-                      SELECIONADO
-                    </Text>
-                  </View>
-                )}
+            <Card.Body className="flex-row items-center p-2 gap-4">
+              <View className="w-14 h-14 rounded-full bg-accent/20 items-center justify-center">
+                <StyledIonicons
+                  name="infinite"
+                  size={30}
+                  className="text-foreground"
+                />
               </View>
-              <Text className="text-zinc-400">
-                Mistura total de todas as categorias!
-              </Text>
-            </View>
-          </Surface>
+              <View className="flex-1">
+                <View className="flex-row justify-between items-center mb-1">
+                  <Card.Title className="text-2xl">TODOS</Card.Title>
+                  {isAllSelected && (
+                    <View className="bg-accent px-2 py-1 rounded-md">
+                      <Text className="text-accent-foreground text-[10px] font-bold">
+                        SELECIONADO
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                <Card.Description className="text-success">
+                  Mistura total de todas as categorias!
+                </Card.Description>
+              </View>
+            </Card.Body>
+          </Card>
         </Pressable>
 
         {/* GRID */}
@@ -158,60 +158,26 @@ export default function SetupScreen() {
           />
         </View>
       </ScrollView>
-
       {/* START BUTTON */}
-      <View className="absolute bottom-8 left-4 right-4">
+      <View
+        className="pt-2 bg-background" // Match background to prevent "see-through" issues
+        style={{ paddingBottom: insets.bottom + 10 }}
+      >
         <Button
           size="lg"
-          className="w-full bg-fuchsia-600 h-16 rounded-full shadow-lg shadow-fuchsia-500/50"
+          className="w-full h-16 rounded-full shadow-lg bg-accent active:opacity-90"
           onPress={handleStart}
         >
-          <Text className="text-white font-black text-xl uppercase tracking-widest">
+          <Text className="text-accent-foreground font-black text-xl uppercase tracking-widest">
             COMEÇAR JOGO
           </Text>
           <Ionicons
             name="play"
             size={24}
-            color="white"
-            style={{ marginLeft: 8 }}
+            className="ml-2 text-accent-foreground"
           />
         </Button>
       </View>
-
-      {/* SETTINGS MODAL */}
-      <Modal visible={showSettings} animationType="slide" transparent>
-        <View className="flex-1 justify-end bg-black/60">
-          <View className="bg-zinc-900 p-6 rounded-t-3xl border-t border-zinc-700">
-            <Text className="text-white text-xl font-bold mb-4">
-              Configurações
-            </Text>
-
-            <Text className="text-zinc-400 mb-2">Nome do Time 1</Text>
-            <TextInput
-              value={localTeamA}
-              onChangeText={setLocalTeamA}
-              className="bg-zinc-800 text-white p-4 rounded-xl mb-4 border border-zinc-700"
-            />
-
-            <Text className="text-zinc-400 mb-2">Nome do Time 2</Text>
-            <TextInput
-              value={localTeamB}
-              onChangeText={setLocalTeamB}
-              className="bg-zinc-800 text-white p-4 rounded-xl mb-6 border border-zinc-700"
-            />
-
-            <Button
-              className="w-full bg-fuchsia-600"
-              onPress={() => {
-                store.setSettings({ teamA: localTeamA, teamB: localTeamB });
-                setShowSettings(false);
-              }}
-            >
-              <Text className="text-white font-bold">Salvar e Fechar</Text>
-            </Button>
-          </View>
-        </View>
-      </Modal>
     </Container>
   );
 }
